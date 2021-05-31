@@ -18,7 +18,6 @@ class SyncClient:
 
     def login(self, token: str) -> dict:
         self.http.token = token.strip()
-        print(f"Token: {self.http.token}")
         data = self.http.connect(login = True)
         self._user = LocalUser(data.get("user"))
         return data
