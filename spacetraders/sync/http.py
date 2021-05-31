@@ -1,7 +1,8 @@
 import requests
 import sys
-from . import __version__
 from .errors import HTTPException
+
+__version__ = "0.1.0a"
 
 class Route:
     BASE = "https://api.spacetraders.io"
@@ -13,7 +14,7 @@ class Route:
 
 class HTTPClient:
     def __init__(self):
-        self.__session = requests.Session() # filled in self.connect
+        self.__session = None # filled in self.connect
         self.token = None
         self.username = None
         
@@ -25,31 +26,37 @@ class HTTPClient:
         url = route.url
 
         headers = {
-            "Authorization": self.token,
             "Content-Type": "application/json",
             "User-Agent": self.user_agent
         }
 
+        if self.token:
+            headers["Authorization"] = "Bearer " + self.token
+
         kwargs["headers"] = headers
-        resp = self.__session.request(route.method, route.url, **kwargs)
+        resp = self.__session.request(method, url, **kwargs)
         status = resp.status_code
         if 300 > status >= 200:
             return resp.json()
 
-        if status == 429:
-            # rip we're being ratelimited
-            raise HTTPException(status, "Ratelimit Exceeded")
+        raise HTTPException(status, resp.reason) # some sort of HTTP error occured. Raises an exception.
 
 
 
-    def connect(self, *, login: bool = False):
+    def connect(self, *, login: bool = False, username: str = None):
+        self.__session = requests.Session()
         if login:
             route = Route("/my/account")
+            data = self.request(route)
+            return data
 
+        if not username:
+            raise ValueError("No Username Set")
 
+        route = Route("/users/{username}/claim", "POST", username = username)
+        data = self.request(route)
+        return data
 
-    
         
 
 
-    

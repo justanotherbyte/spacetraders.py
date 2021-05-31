@@ -135,3 +135,5 @@ Scripts/
 pyvenv.cfg
 .vscode/
 .idea/
+tests.py
+debug.json
